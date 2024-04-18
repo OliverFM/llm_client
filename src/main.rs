@@ -15,6 +15,9 @@ struct Args {
 
     #[clap(long, default_value = "true")]
     should_template: bool,
+
+    #[clap(long, default_value_t = 1024)]
+    max_new_tokens: u32,
 }
 
 #[derive(Deserialize, Debug)]
@@ -34,14 +37,14 @@ async fn main() -> Result<(), Error> {
         json!({
             "inputs": format!("<s>[INST] {} [/INST]", &args.input),
             "parameters": {
-                "max_new_tokens": 100
+                "max_new_tokens": &args.max_new_tokens
             }
         })
     } else {
         json!({
             "inputs": &args.input,
             "parameters": {
-                "max_new_tokens": 100
+                "max_new_tokens": &args.max_new_tokens
             }
         })
     };
