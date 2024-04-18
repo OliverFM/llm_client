@@ -1,6 +1,6 @@
 use clap::Parser;
 use reqwest::Error;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 
 #[derive(Parser, Debug)]
@@ -12,6 +12,9 @@ struct Args {
 
     #[clap(long)]
     input: String,
+
+    #[clap(long, default_value = "true")]
+    should_template: bool,
 }
 
 #[derive(Deserialize, Debug)]
@@ -26,12 +29,22 @@ async fn main() -> Result<(), Error> {
     let client = reqwest::Client::new();
 
     // JSON data to send with the POST request
-    let params = json!({
-        "inputs": &args.input,
-        "parameters": {
-            "max_new_tokens": 100
-        }
-    });
+
+    let params = if args.should_template {
+        json!({
+            "inputs": format!("<s>[INST] {} [/INST]", &args.input),
+            "parameters": {
+                "max_new_tokens": 100
+            }
+        })
+    } else {
+        json!({
+            "inputs": &args.input,
+            "parameters": {
+                "max_new_tokens": 100
+            }
+        })
+    };
 
     // Send the POST request with JSON body and custom header
     let res = client
@@ -40,17 +53,6 @@ async fn main() -> Result<(), Error> {
         .header("Content-Type", "application/json")
         .send()
         .await?;
-
-    //     // Check the status and print the response body
-    //     if res.status().is_success() {
-    //         println!("Response: {:?}", &res);
-    //         let json_response = res.json::<Response>().await?;
-    //         println!("Generated text: {}", json_response.generated_text);
-    //     } else {
-    //         println!("Failed to get an OK response!");
-    //     }
-    //
-    //     Ok(())
 
     if res.status().is_success() {
         let body = res.text().await?;
