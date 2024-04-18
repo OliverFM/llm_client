@@ -56,12 +56,15 @@ async fn main() -> Result<(), Error> {
 
     if res.status().is_success() {
         let body = res.text().await?;
-        println!("Response text: {}", body);
+        // println!("Response text: {}", body);
 
         // Now try to parse the response text as JSON
         let json_response: Result<Vec<Response>, _> = serde_json::from_str(&body);
         match json_response {
-            Ok(parsed) => println!("Generated text: {}", parsed[0].generated_text),
+            Ok(parsed) => println!(
+                "\n\n========================================\n\nGenerated text: {}",
+                parsed[0].generated_text
+            ),
             Err(e) => println!("Failed to parse JSON: {:?}", e),
         }
     } else {
